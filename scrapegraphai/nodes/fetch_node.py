@@ -255,18 +255,16 @@ class FetchNode(BaseNode):
                 if not response.text.strip():
                     raise ValueError("No HTML body content found in the response.")
 
-                if not self.cut:
-                    parsed_content = cleanup_html(response, source)
-
                 if isinstance(self.llm_model, (ChatOpenAI, AzureChatOpenAI)) \
                     and not self.script_creator or (self.force and not self.script_creator):
-                    parsed_content = convert_to_md(source, parsed_content)
-
-                compressed_document = [Document(page_content=parsed_content)]
+                    parsed_content = convert_to_md(response.text.strip())
+                document = Document(page_content=response.text.strip(), metadata={"source": source})
+                compressed_document = [Document(page_content=parsed_content, metadata={"source": source})]
             else:
                 self.logger.warning(
                     f"Failed to retrieve contents from the webpage at url: {source}"
                 )
+                raise ValueError("Invalid status code.")
         else:
             loader_kwargs = {}
 
